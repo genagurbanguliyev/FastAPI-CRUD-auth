@@ -1,0 +1,7 @@
+#cache
+.idea/
+__pycache__/
+venvfastapi/
+
+#db
+database.db
