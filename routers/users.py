@@ -1,16 +1,8 @@
-from typing import Annotated
-from datetime import timedelta
 from fastapi import APIRouter, Depends, HTTPException
-from fastapi.security import OAuth2PasswordRequestForm, OAuth2PasswordBearer
-from sqlalchemy.orm import Session
 from starlette import status
 from passlib.context import CryptContext
 
-from db_config.database import SessionLocal
 from models import Users
-from propTypes.user.i_user import IUser
-from propTypes.token.i_token import Token
-from utils.auth.generateJWT import create_access_token
 from utils.dependencies import user_dependency, db_dependency
 from propTypes.user.i_user import IUserPassVerification
 
