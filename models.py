@@ -1,5 +1,5 @@
-from database import Base
-from sqlalchemy import Column, Integer, String, Boolean
+from db_config.database import Base
+from sqlalchemy import Column, ForeignKey, Integer, String, Boolean
 
 
 class Users(Base):
@@ -23,3 +23,4 @@ class Todos(Base):
     description: str = Column(String)
     priority: int = Column(Integer)
     complete: bool = Column(Boolean)
+    owner_id: int = Column(Integer, ForeignKey("users.id"))

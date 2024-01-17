@@ -6,11 +6,12 @@ from sqlalchemy.orm import Session
 from starlette import status
 from passlib.context import CryptContext
 
-from database import SessionLocal
+from db_config.database import SessionLocal
 from models import Users
 from propTypes.user.i_user import IUser
 from propTypes.token.i_token import Token
-from helpers.auth.generateJWT import create_access_token
+from utils.auth.generateJWT import create_access_token
+from utils.dependencies import db_dependency
 
 router = APIRouter(
     prefix='/auth',
@@ -18,17 +19,6 @@ router = APIRouter(
 )
 
 bcrypt_context = CryptContext(schemes=['bcrypt'], deprecated='auto')
-
-
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
-
-
-db_dependency = Annotated[Session, Depends(get_db)]
 
 
 def authenticate_user(username: str, password: str, db) -> IUser | bool:
@@ -60,10 +50,10 @@ async def create_user(db: db_dependency, user_request: IUser):
 
 
 @router.post('/token', response_model=Token)
-async def login_for_access_token(form_data: Annotated[OAuth2PasswordRequestForm, Depends()], db:db_dependency):
+async def login_for_access_token(form_data: Annotated[OAuth2PasswordRequestForm, Depends()], db:db_dependency) -> Token:
     user = authenticate_user(form_data.username, form_data.password, db)
     if not user:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, message="Could not validate user.")
-    access_token = create_access_token(user.username, user.id, timedelta(minutes=20))
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Could not validate user.")
+    access_token = create_access_token(user.username, user.id, user.role, timedelta(minutes=20))
     return {'access_token': access_token, 'token_type': 'bearer'}
 

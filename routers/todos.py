@@ -1,50 +1,54 @@
-from typing import Annotated
-from sqlalchemy.orm import Session
+
 from fastapi import APIRouter, HTTPException, Path, Depends
 from starlette import status
 
-from database import SessionLocal
+from db_config.database import SessionLocal
 from models import Todos
 from propTypes.todo.i_todo import ITodo
+from utils.dependencies import user_dependency, db_dependency
 
 router = APIRouter()
 
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
-
-
-db_dependency = Annotated[Session, Depends(get_db)]
 
 
 @router.get("/get-todos", status_code=status.HTTP_200_OK)
-async def read_all(db: db_dependency):
-    return db.query(Todos).all()
+async def get_all(user: user_dependency, db: db_dependency):
+    try:
+        return db.query(Todos).filter(Todos.owner_id == user["id"]).all()
+    except Exception as e:
+        print(e)
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 
 @router.get("/get-todos/{todo_id}", status_code=status.HTTP_200_OK)
-async def read_todo(db: db_dependency, todo_id: int = Path(gt=0)):
-    todo_model = db.query(Todos).filter(Todos.id == todo_id).first()
+async def read_todo(user: user_dependency, db: db_dependency, todo_id: int = Path(gt=0)):
+    todo_model = db.query(Todos).filter(Todos.id == todo_id).filter(Todos.owner_id == user["id"]).first()
     if todo_model is not None:
         return todo_model
     raise HTTPException(status_code=404, detail='Todo not found.')
 
 
 @router.post("/create-todo", status_code=status.HTTP_201_CREATED)
-async def create_todo(todo_request: ITodo, db: db_dependency):
-    new_todo = Todos(**todo_request.model_dump())
-    db.add(new_todo)
-    db.commit()
-    db.refresh(new_todo)
-    return new_todo
+async def create_todo(user: user_dependency, db: db_dependency, todo_request: ITodo):
+    try:
+        if user is None:
+            raise HTTPException(status_code=401, detail="Could not validate user.")
+        new_todo = Todos(**todo_request.model_dump(), owner_id=user['id'])
+        db.add(new_todo)
+        db.commit()
+        db.refresh(new_todo)
+        return new_todo
+    except KeyError as e:
+        print(f"There is no {str(e)} get_user_token function returned dict")
+        raise HTTPException(status_code=500, detail="Internal server error")
+    except Exception as e:
+        print(e)
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 
 @router.put("/update-todo/{todo_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def update_todo(todo_request: ITodo, db: db_dependency, todo_id: int = Path(gt=0)):
-    todo = db.query(Todos).filter(Todos.id == todo_id).first()
+async def update_todo(user: user_dependency, todo_request: ITodo, db: db_dependency, todo_id: int = Path(gt=0)):
+    todo = db.query(Todos).filter(Todos.id == todo_id).filter(Todos.owner_id == user["id"]).first()
     if todo is None:
         raise HTTPException(status_code=404, detail='Todo not found.')
     todo.title = todo_request.title
@@ -56,8 +60,8 @@ async def update_todo(todo_request: ITodo, db: db_dependency, todo_id: int = Pat
 
 
 @router.delete("/delete-todo/{todo_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_todo(db: db_dependency, todo_id: int = Path(gt=0)):
-    todo = db.query(Todos).filter(Todos.id == todo_id).first()
+async def delete_todo(user: user_dependency, db: db_dependency, todo_id: int = Path(gt=0)):
+    todo = db.query(Todos).filter(Todos.id == todo_id).filter(Todos.owner_id == user["id"]).first()
     if todo is None:
         raise HTTPException(status_code=404, detail='Todo not found.')
     db.delete(todo)

@@ -22,3 +22,14 @@ class IUser(BaseModel):
                 'role': "admin"
             }
         }
+
+
+class ITokenToUser(BaseModel):
+    username: str
+    id: int | None
+    role: str
+
+
+class IUserPassVerification(BaseModel):
+    password: str
+    new_password: str = Field(min_length=6)

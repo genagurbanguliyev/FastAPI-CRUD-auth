@@ -6,7 +6,7 @@ class ITodo(BaseModel):
     id: Optional[int] = Field(default=None, title="id is not needed")
     title: str = Field(min_length=3)
     description: str = Field(min_length=6)
-    priority: int = Field(gt=0, lt=6)
+    priority: int = Field(gt=0, lt=6, default=1)
     complete: bool = Field(default=None, title="complete by default: False")
 
     class Config:
@@ -14,7 +14,7 @@ class ITodo(BaseModel):
             'example': {
                 'title': "title todo",
                 'description': "description",
-                'priority': 0,
+                'priority': 1,
                 'complete': False,
             }
         }
