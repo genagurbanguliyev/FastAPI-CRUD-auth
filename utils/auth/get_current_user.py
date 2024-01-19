@@ -4,7 +4,7 @@ from fastapi.security import OAuth2PasswordBearer
 from jose import jwt, JWTError
 from starlette import status
 
-from propTypes.user.i_user import ITokenToUser
+from propTypes.i_user import ITokenToUser
 
 import os
 from dotenv import load_dotenv

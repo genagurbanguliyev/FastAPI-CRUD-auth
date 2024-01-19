@@ -6,7 +6,7 @@ from utils.dependencies import user_dependency, db_dependency
 
 
 router = APIRouter(
-    prefix='/admin',
+    prefix='/api/v1/admin',
     tags=['admin']
 )
 

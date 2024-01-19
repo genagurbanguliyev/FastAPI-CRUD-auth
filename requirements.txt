@@ -8,3 +8,7 @@ python-multipart
 "python-jose[cryptography]"
 python-dotenv
 python-decouple
+alembic
+
+aiofiles
+jinja2

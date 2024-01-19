@@ -4,14 +4,19 @@ from passlib.context import CryptContext
 
 from models import Users
 from utils.dependencies import user_dependency, db_dependency
-from propTypes.user.i_user import IUserPassVerification
+from propTypes.i_user import IUserPassVerification
 
 router = APIRouter(
-    prefix='/user',
+    prefix='/api/v1/user',
     tags=['user']
 )
 
 bcrypt_context = CryptContext(schemes=['bcrypt'], deprecated='auto')
+
+
+@router.get("/get-users", status_code=status.HTTP_200_OK)
+async def read_all(db: db_dependency):
+    return db.query(Users).all()
 
 
 @router.get('/', status_code=status.HTTP_200_OK)

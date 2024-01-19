@@ -1,14 +1,15 @@
-
 from fastapi import APIRouter, HTTPException, Path, Depends
 from starlette import status
 
-from db_config.database import SessionLocal
 from models import Todos
-from propTypes.todo.i_todo import ITodo
+from propTypes.i_todo import ITodo
 from utils.dependencies import user_dependency, db_dependency
 
-router = APIRouter()
-
+router = APIRouter(
+    prefix="/api/v1/todos",
+    tags=["todos"],
+    responses={404: { "description": "Not Found" }},
+)
 
 
 @router.get("/get-todos", status_code=status.HTTP_200_OK)
@@ -29,7 +30,7 @@ async def read_todo(user: user_dependency, db: db_dependency, todo_id: int = Pat
 
 
 @router.post("/create-todo", status_code=status.HTTP_201_CREATED)
-async def create_todo(user: user_dependency, db: db_dependency, todo_request: ITodo):
+async def create_todo(todo_request: ITodo, user: user_dependency, db: db_dependency):
     try:
         if user is None:
             raise HTTPException(status_code=401, detail="Could not validate user.")

@@ -1,20 +1,18 @@
 from typing import Annotated
 from datetime import timedelta
 from fastapi import APIRouter, Depends, HTTPException
-from fastapi.security import OAuth2PasswordRequestForm, OAuth2PasswordBearer
-from sqlalchemy.orm import Session
+from fastapi.security import OAuth2PasswordRequestForm
 from starlette import status
 from passlib.context import CryptContext
 
-from db_config.database import SessionLocal
 from models import Users
-from propTypes.user.i_user import IUser
-from propTypes.token.i_token import Token
+from propTypes.i_user import IUser
+from propTypes.i_token import Token
 from utils.auth.generateJWT import create_access_token
 from utils.dependencies import db_dependency
 
 router = APIRouter(
-    prefix='/auth',
+    prefix='/api/v1/auth',
     tags=['auth']
 )
 
@@ -41,7 +39,8 @@ async def create_user(db: db_dependency, user_request: IUser):
         last_name=user_request.last_name,
         hashed_password= bcrypt_context.hash(user_request.password),
         role=user_request.role,
-        is_active=True
+        is_active=True,
+        phone_number=user_request.phone_number
     )
     
     db.add(create_user_model)

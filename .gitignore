@@ -13,5 +13,7 @@ __init__.py
 ./**/__init__.py
 
 
-#db
+#db configs
+alembic.ini
+alembic/
 database.db

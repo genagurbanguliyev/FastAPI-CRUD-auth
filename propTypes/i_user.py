@@ -10,6 +10,7 @@ class IUser(BaseModel):
     last_name: str = Field(min_length=1, max_length=100)
     password: str
     role: str
+    phone_number: str
 
     class Config:
         json_schema_extra = {
