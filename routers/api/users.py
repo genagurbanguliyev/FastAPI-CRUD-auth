@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, HTTPException
 from starlette import status
 from passlib.context import CryptContext
 
@@ -24,7 +24,6 @@ async def get_user(user: user_dependency, db: db_dependency):
     try:
         return db.query(Users).filter(Users.id == user["id"]).first()
     except Exception as e:
-        print(e)
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal My Server ERROR")
 
 

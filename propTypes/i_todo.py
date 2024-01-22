@@ -1,6 +1,7 @@
 from typing import Optional
 from pydantic import BaseModel, Field
 
+from fastapi import Form
 
 class ITodo(BaseModel):
     id: Optional[int] = Field(default=None, title="id is not needed")
@@ -18,3 +19,9 @@ class ITodo(BaseModel):
                 'complete': False,
             }
         }
+
+
+class ITodoForm(BaseModel):
+    title: str = Form(...)
+    description: str = Form(...)
+    priority: int = Form(...)
