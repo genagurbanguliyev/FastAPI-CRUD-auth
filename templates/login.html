@@ -4,8 +4,7 @@
   <div class="card">
     <div class="card-header">Login</div>
     <div class="card-body">
-      {% if msg %} {% if msg == "Logout Successfully" or msg == "User created"
-      %}
+      {% if msg %} {% if msg == "Logout" or msg == "User created" %}
       <div class="alert alert-success" role="alert">{{ msg }}</div>
       {% else %}
       <div class="alert alert-danger" role="alert">{{ msg }}</div>

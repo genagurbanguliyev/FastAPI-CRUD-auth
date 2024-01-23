@@ -1,5 +1,6 @@
 from typing import Annotated
 from fastapi import Depends, HTTPException, Request
+from fastapi.responses import RedirectResponse
 from fastapi.security import OAuth2PasswordBearer
 from jose import jwt, JWTError
 from starlette import status
@@ -29,7 +30,7 @@ async def get_current_user(token: Annotated[str, Depends(oauth2_bearer)]) -> ITo
         raise HTTPException(status_code=500, detail="Internal server error")
 
 
-async def web_get_current_user(request: Request) -> ITokenToUser:
+async def web_get_current_user(request: Request) -> ITokenToUser | None:
     try:
         token = request.cookies.get("access_token")
         if token is None:
@@ -39,10 +40,10 @@ async def web_get_current_user(request: Request) -> ITokenToUser:
         user_id: int = payload.get('id')
         user_role: str = payload.get('role')
         if username is None or user_id is None:
-            return None
+           return RedirectResponse("/auth/sign-out", status_code=status.HTTP_302_FOUND)
         return {"username": username, "id": user_id, 'role': user_role}
-    except JWTError:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Could not validate credentials.")
+    except JWTError as e:
+        return RedirectResponse("/auth/sign-out", status_code=status.HTTP_302_FOUND)
     except Exception as e:
         print(e)
         raise HTTPException(status_code=500, detail="Internal server error")

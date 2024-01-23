@@ -1,14 +1,9 @@
 import sys
 sys.path.append("..")
 
-from typing import Optional
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter
 from starlette import status
 import models
-from db_config.database import engine, SessionLocal
-from db_config.get_db import get_db
-from sqlalchemy.orm import Session
-from pydantic import BaseModel
 from propTypes.i_address import IAddress
 from utils.dependencies import user_dependency, db_dependency
 

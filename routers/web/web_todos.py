@@ -5,7 +5,7 @@ from starlette import status
 
 import models
 from utils.dependencies import db_dependency
-from utils.auth.get_current_user import web_get_current_user
+from utils.auth.web_current_user import web_get_current_user
 
 router = APIRouter(
     prefix="/todos",
@@ -31,6 +31,7 @@ async def add_new_todo(request: Request):
     if user is None:
         return RedirectResponse("/auth/sign-in", status_code=status.HTTP_302_FOUND)
     return templates.TemplateResponse("add-todo.html", { "request": request, "user": user })
+
 
 @router.post('/add-todo', response_class=HTMLResponse)
 async def add_new_todo(request: Request,db: db_dependency, title: str = Form(...), description: str = Form(...), priority: int = Form(...)):

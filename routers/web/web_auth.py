@@ -1,14 +1,13 @@
 from fastapi import APIRouter, Request, status, HTTPException, Form
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
-from starlette.responses import RedirectResponse
 
 import models
 from forms.auth_forms import LoginForm
 from utils.dependencies import db_dependency
 from routers.api.auth import login_access_token
-
-from utils.bcrypt_helpers import bcrypt_hash
+from utils.bcrypt_helpers import bcrypt_hash, bcrypt_verification
+from utils.auth.current_user import web_get_current_user
 
 router = APIRouter(
     prefix="/auth",
@@ -38,9 +37,10 @@ async def sign_in(request: Request, db: db_dependency):
     except HTTPException:
         return templates.TemplateResponse("login.html", { "request": request, "msg": "Unknown Error" })
 
+
 @router.get('/sign-out')
 async def sign_out(request: Request):
-    msg = "Logout Successfully"
+    msg = "Logout"
     response = templates.TemplateResponse("login.html", { "request": request, "msg": msg})
     response.delete_cookie(key="access_token")
     return response
@@ -83,3 +83,28 @@ async def registration(request: Request, db: db_dependency,
 
     msg = "User created"
     return templates.TemplateResponse("login.html", { "request": request, "msg": msg })
+
+
+@router.get('/edit-password', response_class=HTMLResponse)
+async def edit_password_page(request: Request):
+    user = await web_get_current_user(request)
+    if user is None:
+        return RedirectResponse(url="/auth/sign-in", status_code=status.HTTP_302_FOUND)
+    return templates.TemplateResponse("edit-password.html", { "request": request, "user": user })
+
+
+@router.post('/edit-password', response_class=HTMLResponse)
+async def user_password_change(request: Request, db: db_dependency, username: str = Form(...), password: str = Form(...), password2: str = Form(...)):
+    user = await web_get_current_user(request)
+    if user is None:
+        return RedirectResponse(url="/auth/sign-in", status_code=status.HTTP_302_FOUND)
+    
+    user_data = db.query(models.Users).filter(models.Users.id == user["id"]).first()
+    msg = "Invalid password"
+    if user_data is not None:
+        if username == user_data.username and bcrypt_verification(password, user_data.hashed_password):
+            user_data.hashed_password = bcrypt_hash(password2)
+            db.add(user_data)
+            db.commit()
+            msg = "Password updated"
+    return templates.TemplateResponse("edit-password.html", {"request": request, "user": user, "msg": msg })
